@@ -17,6 +17,7 @@ const server = app.listen(port, () => {
 });
 
 const wss = new Server({ server, path: '/ws' });
+console.log('CHECK!')
 
 wss.on('connection', ws => {
   ws.on('message', message => {
