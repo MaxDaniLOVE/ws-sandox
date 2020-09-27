@@ -1,12 +1,12 @@
 const { Server } = require('ws');
 const admin = require('firebase-admin');
 
-// const serviceAccount = require("./ws-nodejs-b191b-firebase-adminsdk-42p8l-5d99b91e69.json");
+const serviceAccount = require("./config/serviceAccount");
 
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-//   databaseURL: "https://ws-nodejs-b191b.firebaseio.com"
-// });
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://ws-nodejs-b191b.firebaseio.com"
+});
 
 const port = process.env.PORT || 8080;
 
