@@ -17,7 +17,27 @@ const server = app.listen(port, () => {
 });
 
 const wss = new Server({ server, path: '/ws' });
-console.log('CHECK!')
+
+app.get('/test', (req, res, next) => {
+    // res.status(200).send({ customToken: 111 })
+  admin
+      .auth()
+      .createCustomToken('uid')
+      .then((customToken) => {
+          console.log(customToken)
+          res.send({ customToken })
+      })
+      .catch((error) => {
+        console.log('Error creating custom token:', error);
+          next();
+      });
+
+})
+
+app.post('/user/register', (req,res, next) => {
+    res.send({ hello: 'world'})
+    next();
+})
 
 wss.on('connection', ws => {
   ws.on('message', message => {
