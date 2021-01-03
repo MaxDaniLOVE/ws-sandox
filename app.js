@@ -1,6 +1,8 @@
 const { Server } = require('ws');
 const admin = require('firebase-admin');
 const express = require('express');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 const serviceAccount = require("./config/serviceAccount");
 
@@ -12,6 +14,16 @@ admin.initializeApp({
 const port = process.env.PORT || 8080;
 const app = express();
 
+const corsOptions = {
+    origin: process.env.ORIGIN,
+    optionsSuccessStatus: 200,
+    credentials: true
+}
+
+app.use(cors(corsOptions));
+
+app.use(cookieParser());
+
 const server = app.listen(port, () => {
   console.log('Listening', server.address());
 });
@@ -21,17 +33,12 @@ const wss = new Server({ server, path: '/ws' });
 app.post('/user/register', async (req, res, next) => {
     try {
         const customToken = await admin.auth().createCustomToken('uid')
-        res.cookie('cookieName', 1, { maxAge: 900000, httpOnly: true });
+        res.cookie('customToken', customToken, { maxAge: 3600, httpOnly: true });
         res.send({ customToken })
     } catch (error) {
         console.log('Error creating custom token:', error);
         next();
     }
-})
-
-app.post('/user/register', (req,res, next) => {
-    res.send({ hello: 'world'})
-    next();
 })
 
 wss.on('connection', ws => {
