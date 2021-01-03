@@ -18,20 +18,15 @@ const server = app.listen(port, () => {
 
 const wss = new Server({ server, path: '/ws' });
 
-app.get('/test', (req, res, next) => {
-    // res.status(200).send({ customToken: 111 })
-  admin
-      .auth()
-      .createCustomToken('uid')
-      .then((customToken) => {
-          console.log(customToken)
-          res.send({ customToken })
-      })
-      .catch((error) => {
+app.post('/user/register', async (req, res, next) => {
+    try {
+        const customToken = await admin.auth().createCustomToken('uid')
+        res.cookie('cookieName', 1, { maxAge: 900000, httpOnly: true });
+        res.send({ customToken })
+    } catch (error) {
         console.log('Error creating custom token:', error);
-          next();
-      });
-
+        next();
+    }
 })
 
 app.post('/user/register', (req,res, next) => {
