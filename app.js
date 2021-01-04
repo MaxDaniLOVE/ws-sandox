@@ -33,7 +33,7 @@ const wss = new Server({ server, path: '/ws' });
 app.post('/user/register', async (req, res, next) => {
     try {
         const customToken = await admin.auth().createCustomToken('uid')
-        res.cookie('customToken', customToken, { maxAge: 3600, httpOnly: true });
+        res.cookie('customToken', customToken, { maxAge: 3600, httpOnly: true, sameSite: 'strict' });
         res.send({ customToken })
     } catch (error) {
         console.log('Error creating custom token:', error);
