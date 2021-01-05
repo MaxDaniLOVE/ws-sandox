@@ -28,6 +28,7 @@ app.use((req, res, next) => {
 app.use(cors(corsOptions));
 
 app.use(cookieParser());
+app.set('trust proxy', 1)
 
 const server = app.listen(port, () => {
   console.log('Listening', server.address());
