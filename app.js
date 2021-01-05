@@ -41,7 +41,7 @@ app.post('/user/register', async (req, res, next) => {
         res.cookie('customToken', customToken, {
             maxAge: 1000 * 60 * 60 * 24, httpOnly: true, sameSite: 'none', secure: true,
         });
-        res.send({ customToken })
+        res.send({ customToken, requestCookies: req.cookies })
     } catch (error) {
         console.log('Error creating custom token:', error);
         next();
