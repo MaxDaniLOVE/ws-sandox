@@ -34,7 +34,7 @@ app.post('/user/register', async (req, res, next) => {
     try {
         const customToken = await admin.auth().createCustomToken('uid')
         res.cookie('customToken', customToken, {
-            maxAge: 3600, httpOnly: true
+            maxAge: 3600, httpOnly: true, sameSite: 'none', secure: true
         });
         res.send({ customToken })
     } catch (error) {
