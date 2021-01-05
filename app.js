@@ -34,7 +34,7 @@ app.post('/user/register', async (req, res, next) => {
     try {
         const customToken = await admin.auth().createCustomToken('uid')
         res.cookie('customToken', customToken, {
-            maxAge: 3600, httpOnly: true, sameSite: 'none', secure: true, path: '/login'
+            maxAge: 3600, httpOnly: true, sameSite: 'none', secure: true, path: '/login', domain: '.heroku.app'
         });
         res.send({ customToken })
     } catch (error) {
