@@ -1,22 +1,21 @@
 const { Server } = require('ws');
 const express = require('express');
-const cors = require('cors');
 const port = process.env.PORT || 8080;
 const app = express();
 const bodyParser = require('body-parser');
 const userRoutes = require('./routes/user-routes');
 const mongoose = require('mongoose');
-require('dotenv').config({path: __dirname + '/.env'});
+require('dotenv').config();
 
 app.use(bodyParser.json());
 
-app.use(cors());
-
 app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', process.env.ORIGIN);
     res.header(
         'Access-Control-Allow-Headers',
         'Origin, X-Requested-With, Content-Type, Accept, Authorization'
     );
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     next();
 });
 
