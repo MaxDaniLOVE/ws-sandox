@@ -5,6 +5,8 @@ const port = process.env.PORT || 8080;
 const app = express();
 const bodyParser = require('body-parser');
 const userRoutes = require('./routes/user-routes');
+const mongoose = require('mongoose');
+require('dotenv').config({path: __dirname + '/.env'});
 
 app.use(bodyParser.json());
 
@@ -18,9 +20,7 @@ app.use((req, res, next) => {
     next();
 });
 
-const server = app.listen(port, () => {
-  console.log('Listening', server.address());
-});
+const server = app.listen(port, () => console.log('Listening', server.address()));
 
 const wss = new Server({ server, path: '/ws' });
 
@@ -35,3 +35,14 @@ wss.on('connection', ws => {
   
   ws.send('ho!');
 });
+
+try {
+    mongoose
+        .connect(
+            process.env.DB_URL,
+            { useUnifiedTopology: true, useNewUrlParser: true, useFindAndModify: false }
+        );
+    console.log('Success db connection');
+} catch (e) {
+    console.log('Failed db connection');
+}
