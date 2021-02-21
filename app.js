@@ -1,15 +1,12 @@
 const { Server } = require('ws');
 const express = require('express');
 const cors = require('cors');
-
 const port = process.env.PORT || 8080;
 const app = express();
+const bodyParser = require('body-parser');
+const userRoutes = require('./routes/user-routes');
 
-const corsOptions = {
-    origin: process.env.ORIGIN,
-    optionsSuccessStatus: 200,
-    credentials: true
-}
+app.use(bodyParser.json());
 
 app.use(cors());
 
@@ -27,14 +24,7 @@ const server = app.listen(port, () => {
 
 const wss = new Server({ server, path: '/ws' });
 
-app.post('/user/register', async (req, res, next) => {
-    try {
-        res.send({ message: 'success' })
-    } catch (error) {
-        console.log('Error creating custom token:', error);
-        next();
-    }
-})
+app.use('/user', userRoutes);
 
 wss.on('connection', ws => {
   ws.on('message', message => {
