@@ -30,6 +30,9 @@ wss.on('connection', ws => {
       client.send(message);
     })
   });
+  ws.on('close', () => {
+      ws.open();
+  })
   ws.send('ho!');
 });
 try {
