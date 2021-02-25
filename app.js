@@ -30,10 +30,7 @@ wss.on('connection', ws => {
       client.send(message);
     })
   });
-  ws.on('close', () => {
-      ws.open();
-  })
-  ws.send('ho!');
+  ws.send(JSON.stringify({ message: 'ho!' }));
 });
 try {
     mongoose
