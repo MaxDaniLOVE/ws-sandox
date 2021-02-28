@@ -16,7 +16,9 @@ const initSocket = server => {
             })
         });
         const numberOfMessages = await Message.find().count();
-        const availableMessages = await Message.find().skip(numberOfMessages - 10);
+        const skipValue = numberOfMessages - 10;
+        if (!numberOfMessages) return ws.send(JSON.stringify([]));
+        const availableMessages = skipValue > 0 ? await Message.find().skip(skipValue) : await Message.find();
         const messages = availableMessages.map(({ _doc: { __v, _id, ...message } }) => ({ id: _id, ...message }));
         ws.send(JSON.stringify(messages));
     });
