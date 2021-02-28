@@ -6,10 +6,10 @@ const jwt = require('jsonwebtoken');
 
 router.post('/sign-up', async (req, res, next) => {
     try {
-        const { password, email } = req.body;
-        if (!password && !email) return next(new Error('No auth data provided'));
+        const { password, email, userName } = req.body;
+        if (!password && !email && !userName) return next(new Error('No auth data provided'));
         const createdProfile = new User({
-            userName: 'USERNAME',
+            userName,
             email,
             password: await bcrypt.hash(password, 12),
         });
