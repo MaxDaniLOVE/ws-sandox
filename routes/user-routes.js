@@ -19,7 +19,12 @@ router.post('/sign-up', async (req, res, next) => {
             process.env.JWT_SECRET_KEY,
             { expiresIn: '1h' }
         );
-        res.send({ email: createdProfile.email, authToken, userName: createdProfile.userName })
+        res.send({
+            id: createdProfile.id,
+            email: createdProfile.email,
+            authToken,
+            userName: createdProfile.userName,
+        });
     } catch (error) {
         console.log('Error', error);
         next();
@@ -41,7 +46,12 @@ router.post('/sign-in', async (req, res, next) => {
             process.env.JWT_SECRET_KEY,
             { expiresIn: '1h' }
         );
-        res.send({ email: existingUser.email, authToken, userName: existingUser.userName });
+        res.send({
+            id: existingUser.id,
+            email: existingUser.email,
+            authToken,
+            userName: existingUser.userName,
+        });
     } catch (error) {
         console.log('Error', error);
         next();
