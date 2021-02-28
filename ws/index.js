@@ -1,4 +1,4 @@
-const requestSender = require('../utils/requestSender');
+const getMessageSender = require('../utils/getMessageSender');
 const { Server } = require('ws');
 const Message = require('../models/message');
 
@@ -12,7 +12,7 @@ const initSocket = server => {
                 timestamp: new Date(),
             })
             const { _doc: { __v, _id, ...doc } } = await newMessage.save();
-            const sendBy = await requestSender(receivedMessage.senderId);
+            const sendBy = await getMessageSender(receivedMessage.senderId);
             wss.clients.forEach((client) => {
                 client.send(JSON.stringify({ id: _id, ...doc, sendBy }));
             })
@@ -22,7 +22,7 @@ const initSocket = server => {
         if (!numberOfMessages) return ws.send(JSON.stringify([]));
         const availableMessages = skipValue > 0 ? await Message.find().skip(skipValue) : await Message.find();
         const messages = await Promise.all(availableMessages.map(async ({ _doc: { __v, _id, ...message } }) => {
-            const sendBy = await requestSender(message.senderId);
+            const sendBy = await getMessageSender(message.senderId);
             return { id: _id, ...message, sendBy };
         }));
         ws.send(JSON.stringify(messages));

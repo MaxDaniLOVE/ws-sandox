@@ -1,6 +1,6 @@
 const User = require('../models/user');
 
-const requestSender = async senderId => {
+const getMessageSender = async senderId => {
     const sender = await User.findById(senderId).exec();
     return sender ? {
         id: senderId,
@@ -9,4 +9,4 @@ const requestSender = async senderId => {
     } : null;
 }
 
-module.exports = requestSender;
+module.exports = getMessageSender;
