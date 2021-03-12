@@ -7,6 +7,7 @@ const initSocket = require('./ws');
 require('dotenv').config();
 const authMiddleware = require('./middleware/token-auth');
 const initDatabase = require('./utils/initDatabase');
+const errorHandler = require('./middleware/error-handler');
 
 app.use(bodyParser.json());
 app.use((req, res, next) => {
@@ -24,5 +25,6 @@ app.use((req, res, next) => {
 const server = app.listen(port, () => console.log('Listening', server.address()));
 app.use('/user', userRoutes);
 app.use(authMiddleware);
+app.use(errorHandler);
 initSocket(server);
 initDatabase();

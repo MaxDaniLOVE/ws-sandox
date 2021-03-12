@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 router.post('/sign-up', async (req, res, next) => {
     try {
         const { password, email, userName } = req.body;
-        if (!password && !email && !userName) return next(new Error('No auth data provided'));
+        if (!password || !email || !userName) res.status(400).send({ message: 'No auth data provided' });
         const createdProfile = new User({
             userName,
             email,
@@ -26,21 +26,20 @@ router.post('/sign-up', async (req, res, next) => {
             userName: createdProfile.userName,
         });
     } catch (error) {
-        console.log('Error', error);
-        next();
+        res.status(500).send({ message: 'Sign up failed' });
     }
 })
 
 router.post('/sign-in', async (req, res, next) => {
     try {
         const { password, email } = req.body;
-        if (!password && !email) return next(new Error('No auth data provided'));
+        if (!password || !email) res.status(400).send({ message: 'No auth data provided' });
         const userDocument = await User.findOne({ email })
-        if (!userDocument) return next(new Error('Could not find user'));
+        if (!userDocument) res.status(500).send({ message: 'Could not find user' });
         const { _doc: { _id, __v, ...documentData }, id } = userDocument;
         const existingUser = { ...documentData, id };
         const isValidPassword = await bcrypt.compare(password, existingUser.password);
-        if (!isValidPassword) return next(new Error('Check your password'));
+        if (!isValidPassword) res.status(403).send({ message: 'Check your password' });
         const authToken = jwt.sign(
             { id: existingUser.id },
             process.env.JWT_SECRET_KEY,
@@ -53,8 +52,7 @@ router.post('/sign-in', async (req, res, next) => {
             userName: existingUser.userName,
         });
     } catch (error) {
-        console.log('Error', error);
-        next();
+        res.status(500).send({ message: 'Sign in failed' });
     }
 })
 
@@ -62,8 +60,7 @@ router.get('/sign-out', async (req, res, next) => {
     try {
         res.send({ message: '/sign-out' })
     } catch (error) {
-        console.log('Error', error);
-        next();
+        res.status(500).send({ message: 'Sign out failed' });
     }
 })
 
