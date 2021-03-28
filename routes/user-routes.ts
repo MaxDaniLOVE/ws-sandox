@@ -2,22 +2,21 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import { User } from '../models/user';
 import jwt from 'jsonwebtoken';
-import fs from 'fs';
-import path from 'path';
+import { getEncodedImage } from '../utils/getEncodedImage';
+import { authMiddleware } from '../middleware/token-auth';
+import multer from 'multer';
 
 const router = express.Router();
+const upload = multer();
 
 router.post('/sign-up', async (req, res, next) => {
 	try {
 		const { password, email, userName } = req.body;
 		if (!password || !email || !userName) res.status(400).send({ message: 'No auth data provided' });
-		const defaultAvatarPath = path.join(__dirname, '../assets/images/default-avatar.png');
-		const defaultAvatar = fs.readFileSync(defaultAvatarPath);
 		const createdProfile = new User({
 			userName,
 			email,
 			password: await bcrypt.hash(password, 12),
-			avatar: defaultAvatar,
 		});
 		await createdProfile.save();
 		const authToken = jwt.sign(
@@ -25,16 +24,11 @@ router.post('/sign-up', async (req, res, next) => {
 			process.env.JWT_SECRET_KEY!,
 			{ expiresIn: '1h' }
 		);
-		const image = createdProfile.avatar;
-		// @ts-ignore
-		const b64encoded = new Buffer(image, 'binary').toString('base64');
-		const avatar = `data:image/jpeg;base64,${b64encoded}`;
 		res.send({
 			id: createdProfile.id,
 			email: createdProfile.email,
 			authToken,
 			userName: createdProfile.userName,
-			avatar,
 		});
 	} catch (error) {
 		res.status(500).send({ message: 'Sign up failed' });
@@ -60,16 +54,12 @@ router.post('/sign-in', async (req, res, next) => {
 			process.env.JWT_SECRET_KEY!,
 			{ expiresIn: '1h' }
 		);
-		const image = userDocument?.avatar;
-		// @ts-ignore
-		const b64encoded = new Buffer(image, 'binary').toString('base64');
-		const avatar = `data:image/jpeg;base64,${b64encoded}`;
 		res.send({
 			id: existingUser.id,
 			email: existingUser.email,
 			authToken,
 			userName: existingUser.userName,
-			avatar,
+			avatar: getEncodedImage(userDocument?.avatar),
 		});
 	} catch (error) {
 		res.status(500).send({ message: 'Sign in failed' });
@@ -81,6 +71,22 @@ router.get('/sign-out', async (req, res, next) => {
 		res.send({ message: '/sign-out' });
 	} catch (error) {
 		res.status(500).send({ message: 'Sign out failed' });
+	}
+});
+
+router.use(authMiddleware);
+
+router.put('/logged/avatar', upload.single('avatar'), async (req, res, next) => {
+	try {
+		const updatedUser = await User.findByIdAndUpdate(req.loggedUserData.id,{ avatar: req.file.buffer }, { new: true });
+		res.send({
+			id: updatedUser?.id,
+			email: updatedUser?.email,
+			userName: updatedUser?.userName,
+			avatar: getEncodedImage(updatedUser?.avatar),
+		});
+	} catch (error) {
+		res.status(500).send({ message: 'Saving avatar failed' });
 	}
 });
 

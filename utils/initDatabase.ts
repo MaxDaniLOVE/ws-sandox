@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-export const initDatabase = () => {
+export const initDatabase = (): void => {
 	try {
 		mongoose
 			.connect(
