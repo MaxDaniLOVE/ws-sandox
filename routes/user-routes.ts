@@ -2,6 +2,8 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import { User } from '../models/user';
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
+import path from 'path';
 
 const router = express.Router();
 
@@ -9,10 +11,13 @@ router.post('/sign-up', async (req, res, next) => {
 	try {
 		const { password, email, userName } = req.body;
 		if (!password || !email || !userName) res.status(400).send({ message: 'No auth data provided' });
+		const defaultAvatarPath = path.join(__dirname, '../assets/images/default-avatar.png');
+		const defaultAvatar = fs.readFileSync(defaultAvatarPath);
 		const createdProfile = new User({
 			userName,
 			email,
 			password: await bcrypt.hash(password, 12),
+			avatar: defaultAvatar,
 		});
 		await createdProfile.save();
 		const authToken = jwt.sign(
@@ -20,11 +25,16 @@ router.post('/sign-up', async (req, res, next) => {
 			process.env.JWT_SECRET_KEY!,
 			{ expiresIn: '1h' }
 		);
+		const image = createdProfile.avatar;
+		// @ts-ignore
+		const b64encoded = new Buffer(image, 'binary').toString('base64');
+		const avatar = `data:image/jpeg;base64,${b64encoded}`;
 		res.send({
 			id: createdProfile.id,
 			email: createdProfile.email,
 			authToken,
 			userName: createdProfile.userName,
+			avatar,
 		});
 	} catch (error) {
 		res.status(500).send({ message: 'Sign up failed' });
@@ -50,11 +60,16 @@ router.post('/sign-in', async (req, res, next) => {
 			process.env.JWT_SECRET_KEY!,
 			{ expiresIn: '1h' }
 		);
+		const image = userDocument?.avatar;
+		// @ts-ignore
+		const b64encoded = new Buffer(image, 'binary').toString('base64');
+		const avatar = `data:image/jpeg;base64,${b64encoded}`;
 		res.send({
 			id: existingUser.id,
 			email: existingUser.email,
 			authToken,
 			userName: existingUser.userName,
+			avatar,
 		});
 	} catch (error) {
 		res.status(500).send({ message: 'Sign in failed' });
