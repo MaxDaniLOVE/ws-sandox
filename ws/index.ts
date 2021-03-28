@@ -23,7 +23,7 @@ export const initSocket = (server: any) => {
 				}));
 			});
 		});
-		const numberOfMessages = await Message.find().count();
+		const numberOfMessages = await Message.find().countDocuments();
 		const skipValue = numberOfMessages - 10;
 		if (!numberOfMessages) return ws.send(JSON.stringify([]));
 		const availableMessages = skipValue > 0 ? await Message.find().skip(skipValue) : await Message.find();

@@ -2,10 +2,12 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import { User } from '../models/user';
 import jwt from 'jsonwebtoken';
-import fs from 'fs';
-import path from 'path';
+import { getEncodedImage } from '../utils/getEncodedImage';
+import { authMiddleware } from '../middleware/token-auth';
+import multer from 'multer';
 
 const router = express.Router();
+const upload = multer();
 
 router.post('/sign-up', async (req, res, next) => {
 	try {
@@ -69,7 +71,7 @@ router.post('/sign-in', async (req, res, next) => {
 			email: existingUser.email,
 			authToken,
 			userName: existingUser.userName,
-			avatar,
+			avatar: getEncodedImage(userDocument?.avatar),
 		});
 	} catch (error) {
 		res.status(500).send({ message: 'Sign in failed' });
@@ -81,6 +83,22 @@ router.get('/sign-out', async (req, res, next) => {
 		res.send({ message: '/sign-out' });
 	} catch (error) {
 		res.status(500).send({ message: 'Sign out failed' });
+	}
+});
+
+router.use(authMiddleware);
+
+router.put('/logged/avatar', upload.single('avatar'), async (req, res, next) => {
+	try {
+		const updatedUser = await User.findByIdAndUpdate(req.loggedUserData.id,{ avatar: req.file.buffer }, { new: true });
+		res.send({
+			id: updatedUser?.id,
+			email: updatedUser?.email,
+			userName: updatedUser?.userName,
+			avatar: getEncodedImage(updatedUser?.avatar),
+		});
+	} catch (error) {
+		res.status(500).send({ message: 'Saving avatar failed' });
 	}
 });
 

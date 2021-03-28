@@ -31,3 +31,15 @@ app.use(authMiddleware);
 app.use(errorHandler);
 initSocket(server);
 initDatabase();
+
+declare global {
+	namespace Express {
+		export interface Request {
+			loggedUserData: {
+				id: string,
+				iat: number,
+				exp: number,
+			}
+		}
+	}
+}
