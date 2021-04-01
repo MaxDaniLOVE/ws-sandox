@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
-export const initDatabase = (): void => {
+export const initDatabase = async (): Promise<void> => {
 	try {
-		mongoose
+		await mongoose
 			.connect(
 				process.env.DB_URL!,
 				{ useUnifiedTopology: true, useNewUrlParser: true, useFindAndModify: false }

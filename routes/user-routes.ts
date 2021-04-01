@@ -5,6 +5,9 @@ import jwt from 'jsonwebtoken';
 import { getEncodedImage } from '../utils/getEncodedImage';
 import { authMiddleware } from '../middleware/token-auth';
 import multer from 'multer';
+// @ts-ignore
+import { createModel } from 'mongoose-gridfs';
+import stream from 'stream';
 
 const router = express.Router();
 const upload = multer();
@@ -74,16 +77,37 @@ router.get('/sign-out', async (req, res, next) => {
 	}
 });
 
+router.get('/:userId/avatar', async (req, res, next) => {
+	try {
+		const Avatar = createModel({ modelName: 'Avatar' });
+		const readStream = Avatar.read({ filename: `${req.params.userId}.png` });
+		readStream.on('error', (error: any) => {
+			throw new Error(error);
+		});
+		readStream.pipe(res);
+	} catch (error) {
+		res.status(500).send({ message: 'Something went wrong' });
+	}
+});
+
 router.use(authMiddleware);
 
 router.put('/logged/avatar', upload.single('avatar'), async (req, res, next) => {
 	try {
-		const updatedUser = await User.findByIdAndUpdate(req.loggedUserData.id,{ avatar: req.file.buffer }, { new: true });
+		const readStream = new stream.PassThrough();
+		readStream.end(req.file.buffer);
+		const options = ({ filename: `${req.loggedUserData.id}.png`, contentType: 'image/png' });
+		const Avatar = createModel({ modelName: 'Avatar' });
+		Avatar.write(options, readStream, (error: any, file: any) => {
+			console.log(error);
+		});
+		const updatedUser = await User.findById(req.loggedUserData.id);
+		const urlBase = req.protocol + '://' + req.get('host');
 		res.send({
 			id: updatedUser?.id,
 			email: updatedUser?.email,
 			userName: updatedUser?.userName,
-			avatar: getEncodedImage(updatedUser?.avatar),
+			avatar: `${urlBase}/user/${updatedUser?.id}/avatar`,
 		});
 	} catch (error) {
 		res.status(500).send({ message: 'Saving avatar failed' });
