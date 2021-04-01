@@ -2,12 +2,12 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import { User } from '../models/user';
 import jwt from 'jsonwebtoken';
-import { getEncodedImage } from '../utils/getEncodedImage';
 import { authMiddleware } from '../middleware/token-auth';
 import multer from 'multer';
 // @ts-ignore
 import { createModel } from 'mongoose-gridfs';
 import stream from 'stream';
+import { getServiceBaseUrl } from '../utils/getServiceBaseUrl';
 
 const router = express.Router();
 const upload = multer();
@@ -62,7 +62,7 @@ router.post('/sign-in', async (req, res, next) => {
 			email: existingUser.email,
 			authToken,
 			userName: existingUser.userName,
-			avatar: getEncodedImage(userDocument?.avatar),
+			avatar: `${getServiceBaseUrl(req)}/user/${existingUser?.id}/avatar`,
 		});
 	} catch (error) {
 		res.status(500).send({ message: 'Sign in failed' });
@@ -102,12 +102,11 @@ router.put('/logged/avatar', upload.single('avatar'), async (req, res, next) => 
 			console.log(error);
 		});
 		const updatedUser = await User.findById(req.loggedUserData.id);
-		const urlBase = req.protocol + '://' + req.get('host');
 		res.send({
 			id: updatedUser?.id,
 			email: updatedUser?.email,
 			userName: updatedUser?.userName,
-			avatar: `${urlBase}/user/${updatedUser?.id}/avatar`,
+			avatar: `${getServiceBaseUrl(req)}/user/${updatedUser?.id}/avatar`,
 		});
 	} catch (error) {
 		res.status(500).send({ message: 'Saving avatar failed' });
