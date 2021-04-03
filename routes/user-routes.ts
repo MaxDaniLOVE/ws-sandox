@@ -4,7 +4,6 @@ import { User } from '../models/user';
 import jwt from 'jsonwebtoken';
 import { authMiddleware } from '../middleware/token-auth';
 import multer from 'multer';
-// @ts-ignore
 import { createModel } from 'mongoose-gridfs';
 import stream from 'stream';
 import { getServiceBaseUrl } from '../utils/getServiceBaseUrl';
