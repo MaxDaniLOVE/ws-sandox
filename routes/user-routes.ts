@@ -48,7 +48,7 @@ router.post('/sign-in', async (req, res, next) => {
 		if (cookie === undefined) {
 			let randomNumber=Math.random().toString();
 			randomNumber=randomNumber.substring(2,randomNumber.length);
-			res.cookie('cookieName',randomNumber, { maxAge: 900000, sameSite: 'none' });
+			res.cookie('cookieName',randomNumber, { maxAge: 900000, sameSite: 'none', secure: true });
 			console.log('cookie created successfully');
 		} else {
 			console.log('cookie exists', cookie);
