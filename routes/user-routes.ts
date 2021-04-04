@@ -27,10 +27,10 @@ router.post('/sign-up', async (req, res, next) => {
 			process.env.JWT_SECRET_KEY!,
 			{ expiresIn: '1h' }
 		);
+		res.cookie('authToken', authToken, { maxAge: 60 * 60 * 1000, sameSite: 'none', secure: true });
 		res.send({
 			id: createdProfile.id,
 			email: createdProfile.email,
-			authToken,
 			userName: createdProfile.userName,
 		});
 	} catch (error) {
@@ -62,7 +62,6 @@ router.post('/sign-in', async (req, res, next) => {
 		res.send({
 			id: existingUser.id,
 			email: existingUser.email,
-			authToken,
 			userName: existingUser.userName,
 			avatar,
 		});
@@ -73,6 +72,7 @@ router.post('/sign-in', async (req, res, next) => {
 
 router.get('/sign-out', async (req, res, next) => {
 	try {
+		res.clearCookie('authToken');
 		res.send({ message: '/sign-out' });
 	} catch (error) {
 		res.status(500).send({ message: 'Sign out failed' });
