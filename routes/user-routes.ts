@@ -57,7 +57,7 @@ router.post('/sign-in', async (req, res, next) => {
 			process.env.JWT_SECRET_KEY!,
 			{ expiresIn: '1h' }
 		);
-		res.cookie('authToken', authToken, { maxAge: 3600, sameSite: 'none', secure: true });
+		res.cookie('authToken', authToken, { maxAge: 60 * 60 * 1000, sameSite: 'none', secure: true });
 		const avatar = userDocument?.hasPhoto ? `${getServiceBaseUrl(req)}/user/${existingUser?.id}/avatar` : null;
 		res.send({
 			id: existingUser.id,
