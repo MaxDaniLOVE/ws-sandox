@@ -7,7 +7,7 @@ import multer from 'multer';
 import { createModel } from 'mongoose-gridfs';
 import stream from 'stream';
 import { getServiceBaseUrl } from '../utils/getServiceBaseUrl';
-import mongoose from 'mongoose';
+import { prepareAvatarUpdating } from '../utils/removeAvatar';
 
 const router = express.Router();
 const upload = multer();
@@ -57,12 +57,13 @@ router.post('/sign-in', async (req, res, next) => {
 			process.env.JWT_SECRET_KEY!,
 			{ expiresIn: '1h' }
 		);
+		const avatar = userDocument?.hasPhoto ? `${getServiceBaseUrl(req)}/user/${existingUser?.id}/avatar` : null;
 		res.send({
 			id: existingUser.id,
 			email: existingUser.email,
 			authToken,
 			userName: existingUser.userName,
-			avatar: `${getServiceBaseUrl(req)}/user/${existingUser?.id}/avatar`,
+			avatar,
 		});
 	} catch (error) {
 		res.status(500).send({ message: 'Sign in failed' });
@@ -97,24 +98,26 @@ router.put('/logged/avatar', upload.single('avatar'), async (req, res, next) => 
 	try {
 		const readStream = new stream.PassThrough();
 		readStream.end(req.file.buffer);
-		const options = ({ filename: `${req.loggedUserData.id}.png`, contentType: 'image/png' });
+		const userId = req.loggedUserData.id;
+		const options = ({ filename: `${userId}.png`, contentType: 'image/png' });
 		const Avatar = createModel({ modelName: 'Avatar' });
-		const file = await mongoose.connection.collections['avatars.files'].findOneAndDelete({ filename: `${req.loggedUserData.id}.png` });
-		if (file) {
-			await mongoose.connection.collection('avatars.chunks').findOneAndDelete({ files_id: file.value?._id });
-		}
-		await Avatar.write(options, readStream, async (error: any) => {
+		await prepareAvatarUpdating(userId, true);
+		Avatar.write(options, readStream, async (error: any) => {
 			if (error) throw new Error(error);
-			const updatedUser = await User.findById(req.loggedUserData.id);
-			res.send({
-				id: updatedUser?.id,
-				email: updatedUser?.email,
-				userName: updatedUser?.userName,
-				avatar: `${getServiceBaseUrl(req)}/user/${updatedUser?.id}/avatar`,
-			});
+			res.send({ avatar: `${getServiceBaseUrl(req)}/user/${userId}/avatar` });
 		});
 	} catch (error) {
 		res.status(500).send({ message: 'Saving avatar failed' });
+	}
+});
+
+router.delete('/logged/avatar', async (req, res) => {
+	try {
+		const userId = req.loggedUserData.id;
+		await prepareAvatarUpdating(userId, false);
+		res.status(200).send({ message: 'Successfully deleted' });
+	} catch (error) {
+		res.status(500).send({ message: 'Deleting avatar failed' });
 	}
 });
 
