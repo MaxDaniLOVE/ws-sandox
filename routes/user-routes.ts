@@ -44,6 +44,15 @@ router.post('/sign-in', async (req, res, next) => {
 		if (!password || !email) res.status(400).send({ message: 'No auth data provided' });
 		const userDocument = await User.findOne({ email });
 		if (!userDocument) res.status(500).send({ message: 'Could not find user' });
+		const cookie = req.cookies.cookieName;
+		if (cookie === undefined) {
+			let randomNumber=Math.random().toString();
+			randomNumber=randomNumber.substring(2,randomNumber.length);
+			res.cookie('cookieName',randomNumber, { maxAge: 900000, httpOnly: true });
+			console.log('cookie created successfully');
+		} else {
+			console.log('cookie exists', cookie);
+		}
 		const existingUser = {
 			userName: userDocument?.userName,
 			email: userDocument?.email,

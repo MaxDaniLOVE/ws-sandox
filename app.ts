@@ -6,11 +6,13 @@ import { config } from 'dotenv';
 import { authMiddleware } from './middleware/token-auth';
 import { initDatabase } from './utils/initDatabase';
 import { errorHandler } from './middleware/error-handler';
+import cookieParser from 'cookie-parser';
 
 config();
 const app = express();
 const port = process.env.PORT || 8080;
 
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use((req, res, next) => {
 	res.header('Access-Control-Allow-Origin', process.env.ORIGIN);
@@ -18,6 +20,7 @@ app.use((req, res, next) => {
 		'Access-Control-Allow-Headers',
 		'X-Auth-Token, Origin, X-Requested-With, Content-Type, Accept, Authorization'
 	);
+	res.header('Access-Control-Allow-Credentials', 'true');
 	res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
 	if (req.method === 'OPTIONS') {
 		return res.sendStatus(200);
