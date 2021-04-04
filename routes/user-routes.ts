@@ -7,6 +7,7 @@ import multer from 'multer';
 import { createModel } from 'mongoose-gridfs';
 import stream from 'stream';
 import { getServiceBaseUrl } from '../utils/getServiceBaseUrl';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 const upload = multer();
@@ -79,11 +80,12 @@ router.get('/sign-out', async (req, res, next) => {
 router.get('/:userId/avatar', async (req, res, next) => {
 	try {
 		const Avatar = createModel({ modelName: 'Avatar' });
-		const readStream = Avatar.read({ filename: `${req.params.userId}.png` });
-		readStream.on('error', (error: any) => {
-			throw new Error(error);
+		Avatar.read({ filename: `${req.params.userId}.png` }, (err, buffer) => {
+			if (err) return next(err);
+			const readStream = new stream.PassThrough();
+			readStream.end(buffer);
+			readStream.pipe(res);
 		});
-		readStream.pipe(res);
 	} catch (error) {
 		res.status(500).send({ message: 'Something went wrong' });
 	}
@@ -97,15 +99,19 @@ router.put('/logged/avatar', upload.single('avatar'), async (req, res, next) => 
 		readStream.end(req.file.buffer);
 		const options = ({ filename: `${req.loggedUserData.id}.png`, contentType: 'image/png' });
 		const Avatar = createModel({ modelName: 'Avatar' });
-		Avatar.write(options, readStream, (error: any, file: any) => {
-			console.log(error);
-		});
-		const updatedUser = await User.findById(req.loggedUserData.id);
-		res.send({
-			id: updatedUser?.id,
-			email: updatedUser?.email,
-			userName: updatedUser?.userName,
-			avatar: `${getServiceBaseUrl(req)}/user/${updatedUser?.id}/avatar`,
+		const file = await mongoose.connection.collections['avatars.files'].findOneAndDelete({ filename: `${req.loggedUserData.id}.png` });
+		if (file) {
+			await mongoose.connection.collection('avatars.chunks').findOneAndDelete({ files_id: file.value?._id });
+		}
+		await Avatar.write(options, readStream, async (error: any) => {
+			if (error) throw new Error(error);
+			const updatedUser = await User.findById(req.loggedUserData.id);
+			res.send({
+				id: updatedUser?.id,
+				email: updatedUser?.email,
+				userName: updatedUser?.userName,
+				avatar: `${getServiceBaseUrl(req)}/user/${updatedUser?.id}/avatar`,
+			});
 		});
 	} catch (error) {
 		res.status(500).send({ message: 'Saving avatar failed' });
