@@ -7,7 +7,7 @@ import multer from 'multer';
 import { createModel } from 'mongoose-gridfs';
 import stream from 'stream';
 import { getServiceBaseUrl } from '../utils/getServiceBaseUrl';
-import { prepareAvatarUpdating } from '../utils/removeAvatar';
+import { prepareAvatarUpdating } from '../utils/prepareAvatarUpdating';
 
 const router = express.Router();
 const upload = multer();
